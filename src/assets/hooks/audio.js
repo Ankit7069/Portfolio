@@ -1,10 +1,17 @@
 import { useState, useRef, useCallback } from 'react';
 
-// Demo songs configuration
+// HELPER: Get correct path for GitHub Pages or Localhost
+const getAssetPath = (path) => {
+  const base = import.meta.env.BASE_URL;
+  const cleanBase = base.endsWith('/') ? base : `${base}/`;
+  const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+  return `${cleanBase}${cleanPath}`;
+};
+
 const DEMO_SONGS = {
-  'synth': { path: '/demos/Finding Her.mp3', name: 'Finding Her' },
-  'drone': { path: '/demos/Dhundhala.mp3', name: 'Dhundhala' },
-  'beat': { path: '/demos/Jhol - Acoustic.mp3', name: 'Jhol - Acoustic' }
+  'synth': { path: getAssetPath('demos/Finding Her.mp3'), name: 'Finding Her' },
+  'drone': { path: getAssetPath('demos/Dhundhala.mp3'), name: 'Dhundhala' },
+  'beat':  { path: getAssetPath('demos/Jhol - Acoustic.mp3'), name: 'Jhol - Acoustic' }
 };
 
 export const useAudio = () => {
@@ -17,9 +24,7 @@ export const useAudio = () => {
   const masterGainRef = useRef(null);
   const analyserRef = useRef(null);
   const oscillatorsRef = useRef([]);
-  const audioSourceRef = useRef(null);
   const audioElementRef = useRef(null);
-  const animationFrameRef = useRef(null);
   const mediaNodeRef = useRef(null);
 
   const initAudio = () => {
@@ -37,67 +42,47 @@ export const useAudio = () => {
       masterGainRef.current.connect(analyserRef.current);
       analyserRef.current.connect(audioCtxRef.current.destination);
     }
-    // Always ensure context is running
     if (audioCtxRef.current.state === 'suspended') {
-      audioCtxRef.current.resume().catch(() => {
-        // Resume may fail but that's ok
-      });
+      audioCtxRef.current.resume().catch(() => {});
     }
   };
 
-  const createOscillator = (type, freq, detune = 0) => {
-    const ctx = audioCtxRef.current;
-    const osc = ctx.createOscillator();
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, ctx.currentTime);
-    osc.detune.value = detune;
-    return osc;
-  };
-
   const stopSound = useCallback(() => {
-    // Stop oscillators
+    // Stop Oscillators
     oscillatorsRef.current.forEach(item => {
       try {
         if (item.stop) item.stop();
         if (item.disconnect) item.disconnect();
-        if (item.clearInterval) clearInterval(item.id);
-      } catch (e) {
-        // Silently ignore errors
-      }
+      } catch (e) {}
     });
     oscillatorsRef.current = [];
 
-    // Stop audio element playback
+    // Stop Audio Element
     if (audioElementRef.current) {
       audioElementRef.current.pause();
       audioElementRef.current.currentTime = 0;
+      // Remove the event listener to stop progress updates
+      audioElementRef.current.ontimeupdate = null; 
     }
 
     setIsPlaying(false);
     setCurrentType(null);
     setActiveProgress(0);
     setDuration(0);
-
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-    }
   }, []);
 
   const playSound = (type) => {
     initAudio();
 
-    // Resume audio context
     if (audioCtxRef.current.state === 'suspended') {
       audioCtxRef.current.resume();
     }
 
-    // If clicking the same song while playing, stop it
     if (isPlaying && currentType === type) {
       stopSound();
       return;
     }
 
-    // Stop any currently playing audio before starting a new one
     if (isPlaying && currentType !== type) {
       stopSound();
     }
@@ -108,7 +93,6 @@ export const useAudio = () => {
     setIsPlaying(true);
     setCurrentType(type);
 
-    // Create audio element for demo song
     if (!audioElementRef.current) {
       audioElementRef.current = new Audio();
       audioElementRef.current.crossOrigin = 'anonymous';
@@ -118,42 +102,47 @@ export const useAudio = () => {
     audio.src = songConfig.path;
     audio.volume = 0.5;
 
+    // 1. Handle Metadata (Set Duration)
     audio.onloadedmetadata = () => {
-      setDuration(audio.duration);
+      if(isFinite(audio.duration)) {
+        setDuration(audio.duration);
+      }
+    };
+
+    // 2. Handle Progress (The FIX: Use ontimeupdate instead of requestAnimationFrame)
+    audio.ontimeupdate = () => {
+      if (audio.duration && isFinite(audio.duration) && audio.duration > 0) {
+        const progress = (audio.currentTime / audio.duration) * 100;
+        setActiveProgress(progress);
+      } else {
+        setActiveProgress(0);
+      }
     };
 
     audio.onended = () => {
       stopSound();
     };
 
-    // Connect to analyser BEFORE playing
+    // Audio Graph Connection
     try {
       if (!mediaNodeRef.current) {
         mediaNodeRef.current = audioCtxRef.current.createMediaElementAudioSource(audio);
         mediaNodeRef.current.connect(masterGainRef.current);
       }
     } catch (error) {
-      // Source already connected, continue
+      // Ignore if already connected
     }
 
-    // Play audio
     const playPromise = audio.play();
     if (playPromise !== undefined) {
       playPromise.catch((error) => {
         console.log('Playback error:', error.message);
+        // Debugging: If error is 404, the path is wrong
+        if(error.message.includes('supported')) {
+            console.error("Audio format not supported or path not found");
+        }
       });
     }
-
-    // Update progress with animation frame
-    const updateProgress = () => {
-      if (audio && audio.duration) {
-        const progress = (audio.currentTime / audio.duration) * 100;
-        setActiveProgress(Math.min(progress, 100));
-      }
-      animationFrameRef.current = requestAnimationFrame(updateProgress);
-    };
-
-    animationFrameRef.current = requestAnimationFrame(updateProgress);
   };
 
   const getSongName = (type) => {
@@ -164,7 +153,7 @@ export const useAudio = () => {
     if (audioElementRef.current && duration > 0) {
       const newTime = (percentage / 100) * duration;
       audioElementRef.current.currentTime = newTime;
-      setActiveProgress((newTime / duration) * 100);
+      setActiveProgress(percentage);
     }
   };
 
@@ -177,6 +166,6 @@ export const useAudio = () => {
     playSound,
     stopSound,
     getSongName,
-    seek // Ensure the seek function is exposed
+    seek
   };
 };

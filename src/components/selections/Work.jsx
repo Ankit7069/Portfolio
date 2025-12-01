@@ -14,9 +14,9 @@ const Work = ({ playSound, isPlaying, currentType, activeProgress, seek, getSong
         </Reveal>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {/* Demo Track 1 */}
+          {/* Demo Track 1 - SYNTH */}
           <Reveal delay={100}>
-            <div className="group bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-6 hover:border-cyan-500/50 transition-all duration-300 shadow-[0_0_15px_rgba(56,189,248,0.1)] hover:-translate-y-2">
+            <div className={`group bg-slate-800/50 backdrop-blur-sm border rounded-2xl p-6 transition-all duration-300 shadow-[0_0_15px_rgba(56,189,248,0.1)] hover:-translate-y-2 ${currentType === 'synth' ? 'border-cyan-500/50' : 'border-slate-700'}`}>
               <div className="flex justify-between items-start mb-6">
                 <div className="p-3 bg-fuchsia-500/10 rounded-lg text-fuchsia-400 group-hover:bg-fuchsia-500/20 transition-colors">
                   <Music className="w-6 h-6" />
@@ -33,28 +33,32 @@ const Work = ({ playSound, isPlaying, currentType, activeProgress, seek, getSong
                   >
                     {isPlaying && currentType === 'synth' ? <Square className="fill-current w-4 h-4" /> : <Play className="fill-current w-5 h-5 ml-1" />}
                   </button>
+                  {/* PROGRESS BAR 1 */}
                   <div 
-                    className="w-full bg-slate-800 h-1 rounded-full overflow-hidden relative cursor-pointer"
+                    className="w-full bg-slate-800 h-1 rounded-full overflow-hidden relative cursor-pointer py-1"
                     onMouseDown={(e) => {
                       const rect = e.currentTarget.getBoundingClientRect();
-                      const onMouseMove = (moveEvent) => {
-                        const clickX = moveEvent.clientX - rect.left;
+                      const handleSeek = (clientX) => {
+                        const clickX = clientX - rect.left;
                         const percentage = Math.max(0, Math.min((clickX / rect.width) * 100, 100));
                         seek(percentage);
                       };
-
+                      handleSeek(e.clientX); // Seek immediately on click
+                      
+                      const onMouseMove = (moveEvent) => handleSeek(moveEvent.clientX);
                       const onMouseUp = () => {
                         window.removeEventListener('mousemove', onMouseMove);
                         window.removeEventListener('mouseup', onMouseUp);
                       };
-
                       window.addEventListener('mousemove', onMouseMove);
                       window.addEventListener('mouseup', onMouseUp);
                     }}
                   >
+                    {/* Inner Bar - removed isPlaying check so it stays visible */}
+                    <div className="w-full h-1 bg-slate-800 absolute top-1 left-0 rounded-full"></div>
                     <div 
-                      className="bg-cyan-500 h-full transition-all duration-100 ease-linear"
-                      style={{ width: isPlaying && currentType === 'synth' ? `${activeProgress}%` : '0%' }}
+                      className="bg-cyan-500 h-1 absolute top-1 left-0 rounded-full transition-all duration-100 ease-linear"
+                      style={{ width: currentType === 'synth' ? `${activeProgress}%` : '0%' }}
                     />
                   </div>
                 </div>
@@ -62,9 +66,9 @@ const Work = ({ playSound, isPlaying, currentType, activeProgress, seek, getSong
             </div>
           </Reveal>
 
-          {/* Demo Track 2 */}
+          {/* Demo Track 2 - DRONE */}
           <Reveal delay={200}>
-            <div className="group bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-6 hover:border-violet-500/50 transition-all duration-300 shadow-[0_0_15px_rgba(56,189,248,0.1)] hover:-translate-y-2">
+            <div className={`group bg-slate-800/50 backdrop-blur-sm border rounded-2xl p-6 transition-all duration-300 shadow-[0_0_15px_rgba(56,189,248,0.1)] hover:-translate-y-2 ${currentType === 'drone' ? 'border-violet-500/50' : 'border-slate-700'}`}>
               <div className="flex justify-between items-start mb-6">
                 <div className="p-3 bg-violet-500/10 rounded-lg text-violet-400 group-hover:bg-violet-500/20 transition-colors">
                   <Wind className="w-6 h-6" />
@@ -81,28 +85,31 @@ const Work = ({ playSound, isPlaying, currentType, activeProgress, seek, getSong
                   >
                     {isPlaying && currentType === 'drone' ? <Square className="fill-current w-4 h-4" /> : <Play className="fill-current w-5 h-5 ml-1" />}
                   </button>
+                  {/* PROGRESS BAR 2 */}
                   <div 
-                    className="w-full bg-slate-800 h-1 rounded-full overflow-hidden relative cursor-pointer"
+                    className="w-full bg-slate-800 h-1 rounded-full overflow-hidden relative cursor-pointer py-1"
                     onMouseDown={(e) => {
                       const rect = e.currentTarget.getBoundingClientRect();
-                      const onMouseMove = (moveEvent) => {
-                        const clickX = moveEvent.clientX - rect.left;
+                      const handleSeek = (clientX) => {
+                        const clickX = clientX - rect.left;
                         const percentage = Math.max(0, Math.min((clickX / rect.width) * 100, 100));
                         seek(percentage);
                       };
+                      handleSeek(e.clientX);
 
+                      const onMouseMove = (moveEvent) => handleSeek(moveEvent.clientX);
                       const onMouseUp = () => {
                         window.removeEventListener('mousemove', onMouseMove);
                         window.removeEventListener('mouseup', onMouseUp);
                       };
-
                       window.addEventListener('mousemove', onMouseMove);
                       window.addEventListener('mouseup', onMouseUp);
                     }}
                   >
+                    <div className="w-full h-1 bg-slate-800 absolute top-1 left-0 rounded-full"></div>
                     <div 
-                      className="bg-violet-500 h-full transition-all duration-100 ease-linear"
-                      style={{ width: isPlaying && currentType === 'drone' ? `${activeProgress}%` : '0%' }}
+                      className="bg-violet-500 h-1 absolute top-1 left-0 rounded-full transition-all duration-100 ease-linear"
+                      style={{ width: currentType === 'drone' ? `${activeProgress}%` : '0%' }}
                     />
                   </div>
                 </div>
@@ -110,9 +117,9 @@ const Work = ({ playSound, isPlaying, currentType, activeProgress, seek, getSong
             </div>
           </Reveal>
 
-          {/* Demo Track 3 */}
+          {/* Demo Track 3 - BEAT */}
           <Reveal delay={300}>
-            <div className="group bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-6 hover:border-emerald-500/50 transition-all duration-300 shadow-[0_0_15px_rgba(56,189,248,0.1)] hover:-translate-y-2">
+            <div className={`group bg-slate-800/50 backdrop-blur-sm border rounded-2xl p-6 transition-all duration-300 shadow-[0_0_15px_rgba(56,189,248,0.1)] hover:-translate-y-2 ${currentType === 'beat' ? 'border-emerald-500/50' : 'border-slate-700'}`}>
               <div className="flex justify-between items-start mb-6">
                 <div className="p-3 bg-emerald-500/10 rounded-lg text-emerald-400 group-hover:bg-emerald-500/20 transition-colors">
                   <Speaker className="w-6 h-6" />
@@ -129,28 +136,31 @@ const Work = ({ playSound, isPlaying, currentType, activeProgress, seek, getSong
                   >
                     {isPlaying && currentType === 'beat' ? <Square className="fill-current w-4 h-4" /> : <Play className="fill-current w-5 h-5 ml-1" />}
                   </button>
+                  {/* PROGRESS BAR 3 */}
                   <div 
-                    className="w-full bg-slate-800 h-1 rounded-full overflow-hidden relative cursor-pointer"
+                    className="w-full bg-slate-800 h-1 rounded-full overflow-hidden relative cursor-pointer py-1"
                     onMouseDown={(e) => {
                       const rect = e.currentTarget.getBoundingClientRect();
-                      const onMouseMove = (moveEvent) => {
-                        const clickX = moveEvent.clientX - rect.left;
+                      const handleSeek = (clientX) => {
+                        const clickX = clientX - rect.left;
                         const percentage = Math.max(0, Math.min((clickX / rect.width) * 100, 100));
                         seek(percentage);
                       };
+                      handleSeek(e.clientX);
 
+                      const onMouseMove = (moveEvent) => handleSeek(moveEvent.clientX);
                       const onMouseUp = () => {
                         window.removeEventListener('mousemove', onMouseMove);
                         window.removeEventListener('mouseup', onMouseUp);
                       };
-
                       window.addEventListener('mousemove', onMouseMove);
                       window.addEventListener('mouseup', onMouseUp);
                     }}
                   >
+                    <div className="w-full h-1 bg-slate-800 absolute top-1 left-0 rounded-full"></div>
                     <div 
-                      className="bg-emerald-500 h-full transition-all duration-100 ease-linear"
-                      style={{ width: isPlaying && currentType === 'beat' ? `${activeProgress}%` : '0%' }}
+                      className="bg-emerald-500 h-1 absolute top-1 left-0 rounded-full transition-all duration-100 ease-linear"
+                      style={{ width: currentType === 'beat' ? `${activeProgress}%` : '0%' }}
                     />
                   </div>
                 </div>

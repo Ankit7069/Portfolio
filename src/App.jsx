@@ -11,7 +11,7 @@ import { useAudio } from './assets/hooks/audio';
 const App = () => {
   const [activeSection, setActiveSection] = useState('about');
   
-  // Use custom hook for audio logic
+  // 1. Add 'seek' to the destructuring here
   const { 
     isPlaying, 
     currentType, 
@@ -19,7 +19,8 @@ const App = () => {
     analyserRef, 
     playSound,
     stopSound,
-    getSongName
+    getSongName,
+    seek // <--- Add this
   } = useAudio();
 
   // Refs for mini visualizers in the Work section
@@ -69,6 +70,7 @@ const App = () => {
         activeProgress={activeProgress}
         vizRefs={vizRefs}
         getSongName={getSongName}
+        seek={seek} // <--- Add this line
       />
       
       <Skill />
