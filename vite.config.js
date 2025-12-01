@@ -7,6 +7,6 @@ import react from '@vitejs/plugin-react'
 // where REPO_NAME is the name of your GitHub repository.
 // Example: if your repo is `om-patole/portfolio`, set base: '/portfolio/'.
 export default defineConfig({
-  base: '/Portfoliov2/', // TODO: change this if your repo name is different
+  base: '/Portfolio', // TODO: change this if your repo name is different
   plugins: [tailwindcss(), react()],
 })
