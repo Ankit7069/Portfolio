@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .pause {
+    animation-play-state: paused;
+  }
+}
+
+/* Custom Keyframes for Animations used in components */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes gradient-x {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Ensure smooth scrolling for the whole page */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #0f172a; /* Slate 900 */
+}
